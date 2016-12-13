@@ -351,6 +351,7 @@ ngx_rtmp_recv(ngx_event_t *rev)
             }
 
             ext = st->ext;
+
             timestamp = st->dtime;
             if (fmt <= 2 ) {
                 if (b->last - p < 3)
@@ -417,13 +418,27 @@ ngx_rtmp_recv(ngx_event_t *rev)
                     h->timestamp = timestamp;
                     st->dtime = 0;
                 }
+
             }
 
-            ngx_log_debug8(NGX_LOG_DEBUG_RTMP, c->log, 0,
-                    "RTMP mheader fmt=%d %s (%d) "
-                    "time=%uD+%uD mlen=%D len=%D msid=%D",
-                    (int)fmt, ngx_rtmp_message_type(h->type), (int)h->type,
-                    h->timestamp, st->dtime, h->mlen, st->len, h->msid);
+//			ngx_log_error(NGX_LOG_ERR, c->log, 0, "cscf->delta_pts_fix=%lu", cscf->delta_pts_fix);
+
+			if ((0!=cscf->delta_pts_fix) && (st->dtime > cscf->delta_pts_fix))//do workaround for invalid timestamp
+			{
+				ngx_log_error(NGX_LOG_ERR, c->log, 0, "----------->ACHTUNG!!! , st->dtime=%lu", st->dtime);
+				st->dtime = 1;
+				ngx_log_error(NGX_LOG_ERR, c->log, 0,
+					"RTMP mheader fmt=%d (%d) time=%uD+%uD mlen=%D len=%D msid=%D delta_pts_fix=%d",
+					(int)fmt, (int)h->type, h->timestamp, st->dtime, h->mlen, st->len, h->msid, cscf->delta_pts_fix);
+			}
+			else
+			{
+				ngx_log_debug8(NGX_LOG_DEBUG_RTMP, c->log, 0,
+					"RTMP mheader fmt=%d %s (%d) "
+					"time=%uD+%uD mlen=%D len=%D msid=%D",
+					(int)fmt, ngx_rtmp_message_type(h->type), (int)h->type,
+					h->timestamp, st->dtime, h->mlen, st->len, h->msid);
+			}
 
             /* header done */
             b->pos = p;

@@ -329,6 +329,7 @@ typedef struct ngx_rtmp_core_srv_conf_s {
     size_t                  max_message;
     ngx_flag_t              play_time_fix;
     ngx_flag_t              publish_time_fix;
+	ngx_msec_t              delta_pts_fix;
     ngx_flag_t              busy;
     size_t                  out_queue;
     size_t                  out_cork;

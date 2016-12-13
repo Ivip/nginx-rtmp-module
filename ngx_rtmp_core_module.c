@@ -151,6 +151,13 @@ static ngx_command_t  ngx_rtmp_core_commands[] = {
       offsetof(ngx_rtmp_core_srv_conf_t, publish_time_fix),
       NULL },
 
+	{ ngx_string("delta_pts_fix"),
+	  NGX_RTMP_MAIN_CONF | NGX_RTMP_SRV_CONF | NGX_CONF_TAKE1,
+	  ngx_conf_set_msec_slot,
+	  NGX_RTMP_SRV_CONF_OFFSET,
+	  offsetof(ngx_rtmp_core_srv_conf_t, delta_pts_fix),
+	  NULL },
+
     { ngx_string("buflen"),
       NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_CONF_TAKE1,
       ngx_conf_set_msec_slot,
@@ -250,6 +257,7 @@ ngx_rtmp_core_create_srv_conf(ngx_conf_t *cf)
     conf->publish_time_fix = NGX_CONF_UNSET;
     conf->buflen = NGX_CONF_UNSET_MSEC;
     conf->busy = NGX_CONF_UNSET;
+	conf->delta_pts_fix = NGX_CONF_UNSET_MSEC;
 
     return conf;
 }
@@ -278,6 +286,8 @@ ngx_rtmp_core_merge_srv_conf(ngx_conf_t *cf, void *parent, void *child)
     ngx_conf_merge_value(conf->publish_time_fix, prev->publish_time_fix, 1);
     ngx_conf_merge_msec_value(conf->buflen, prev->buflen, 1000);
     ngx_conf_merge_value(conf->busy, prev->busy, 0);
+
+	ngx_conf_merge_msec_value(conf->delta_pts_fix, prev->delta_pts_fix, 1000000000);
 
     if (prev->pool == NULL) {
         prev->pool = ngx_create_pool(4096, &cf->cycle->new_log);

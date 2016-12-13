@@ -747,29 +747,46 @@ ngx_rtmp_notify_record_done_create(ngx_rtmp_session_t *s, void *arg,
     ngx_chain_t                    *pl;
     ngx_buf_t                      *b;
     size_t                          name_len, args_len;
+	char							*szBuf = NULL;
+	char							szFinishTime[16] = { 0 };
+	uint32_t						buff_size = 0;
 
     ctx = ngx_rtmp_get_module_ctx(s, ngx_rtmp_notify_module);
-
     pl = ngx_alloc_chain_link(pool);
     if (pl == NULL) {
         return NULL;
     }
 
+	if(v->last_frame_time)
+	{
+		struct tm xtm;
+		ngx_libc_localtime(v->last_frame_time, &xtm);
+		strftime((char *)szFinishTime, sizeof(szFinishTime), "%Y%m%dT%H%M%S", &xtm);
+//		ngx_log_debug1(NGX_LOG_DEBUG_RTMP, s->connection->log, 0, "TIME_CHECKER NGX_RTMP_NOTIFY_RECORD_DONE_CREATE %s", szFinishTime);
+	}
+
     name_len  = ngx_strlen(ctx->name);
     args_len  = ngx_strlen(ctx->args);
 
-    b = ngx_create_temp_buf(pool,
-                            sizeof("&call=record_done") +
-                            sizeof("&recorder=") + v->recorder.len +
-                            sizeof("&name=") + name_len * 3 +
-                            sizeof("&path=") + v->path.len * 3 +
-                            1 + args_len);
+	buff_size = sizeof("&call=record_done") +
+		sizeof("&recorder=") + v->recorder.len +
+		sizeof("&name=") + name_len * 3 +
+		sizeof("&path=") + v->path.len * 3 +
+		1 + args_len;
+
+	if (v->last_frame_time)
+		buff_size += sizeof("&endtime=") + sizeof(szFinishTime);
+
+	b = ngx_create_temp_buf(pool, buff_size);
+
     if (b == NULL) {
         return NULL;
     }
 
     pl->buf = b;
     pl->next = NULL;
+
+	szBuf = (char*)b->last;
 
     b->last = ngx_cpymem(b->last, (u_char*) "&call=record_done",
                          sizeof("&call=record_done") - 1);
@@ -786,14 +803,20 @@ ngx_rtmp_notify_record_done_create(ngx_rtmp_session_t *s, void *arg,
     b->last = ngx_cpymem(b->last, (u_char*) "&path=", sizeof("&path=") - 1);
     b->last = (u_char*) ngx_escape_uri(b->last, v->path.data, v->path.len,
                                        NGX_ESCAPE_ARGS);
+	if (v->last_frame_time)
+	{
+		b->last = ngx_cpymem(b->last, (u_char*) "&endtime=", sizeof("&endtime=") - 1);
+		b->last = ngx_cpymem(b->last, (u_char*)szFinishTime, sizeof(szFinishTime) - 1);
+	}
 
     if (args_len) {
         *b->last++ = '&';
         b->last = (u_char *) ngx_cpymem(b->last, ctx->args, args_len);
     }
 
-    return ngx_rtmp_notify_create_request(s, pool, NGX_RTMP_NOTIFY_RECORD_DONE,
-                                          pl);
+	ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "TIME_CHECKER NGX_RTMP_NOTIFY_RECORD_DONE_CREATE %s", szBuf);
+
+    return ngx_rtmp_notify_create_request(s, pool, NGX_RTMP_NOTIFY_RECORD_DONE, pl);
 }
 
 
@@ -1510,6 +1533,9 @@ ngx_rtmp_notify_record_done(ngx_rtmp_session_t *s, ngx_rtmp_record_done_t *v)
     ngx_rtmp_netcall_create(s, &ci);
 
 next:
+
+//	ngx_log_debug1(NGX_LOG_DEBUG_RTMP, s->connection->log, 0, "TIME_CHECKER NGX_RTMP_NOTIFY_RECORD_DONE %s", ctime(&v->last_frame_time));
+
     return next_record_done(s, v);
 }
 
