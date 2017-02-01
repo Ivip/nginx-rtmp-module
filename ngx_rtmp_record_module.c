@@ -1040,10 +1040,10 @@ ngx_rtmp_record_write_frame(ngx_rtmp_session_t *s,
 		if (rracf->pts_based_file_slices && (rctx->nframes > 0) && (rracf->gap_timediff > 0) && ((rctx->last_timestamp + rracf->gap_timediff) < h->timestamp))//make gap on timestamps diff
 		{
 			ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "-----------> TIMESTAMPS DIFF %dms  more than %d", h->timestamp - rctx->last_timestamp, rracf->gap_timediff);
-			time_t closetime = rctx->start_time + (rctx->last_timestamp - rctx->time_shift) / 1000;
-			time_t closetime2 = rctx->start_time + (h->timestamp - rctx->time_shift) / 1000;
-			ngx_log_debug2(NGX_LOG_DEBUG_RTMP, s->connection->log, 0, "last_timestamp=%d, %s", rctx->last_timestamp / 1000, ctime(&closetime));
-			ngx_log_debug2(NGX_LOG_DEBUG_RTMP, s->connection->log, 0, "h->timestamp=%d, %s", h->timestamp / 1000, ctime(&closetime2));
+			//time_t closetime = rctx->start_time + (rctx->last_timestamp - rctx->time_shift) / 1000;
+			//time_t closetime2 = rctx->start_time + (h->timestamp - rctx->time_shift) / 1000;
+			//ngx_log_debug2(NGX_LOG_DEBUG_RTMP, s->connection->log, 0, "last_timestamp=%d, %s", rctx->last_timestamp / 1000, ctime(&closetime));
+			//ngx_log_debug2(NGX_LOG_DEBUG_RTMP, s->connection->log, 0, "h->timestamp=%d, %s", h->timestamp / 1000, ctime(&closetime2));
 			//ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "duration=%d, video_frames_count=%d, audio_frames_count=%d, bytes_written=%d", (rctx->last_timestamp - rctx->first_timestamp) / 1000, rctx->video_frames_count, rctx->audio_frames_count, rctx->bytes_written);
 			ngx_rtmp_record_node_close(s, rctx);
 			rctx->force_rec_restart_flag = 1;

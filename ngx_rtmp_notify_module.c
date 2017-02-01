@@ -747,7 +747,7 @@ ngx_rtmp_notify_record_done_create(ngx_rtmp_session_t *s, void *arg,
     ngx_chain_t                    *pl;
     ngx_buf_t                      *b;
     size_t                          name_len, args_len;
-	char							*szBuf = NULL;
+//	char							*szBuf = NULL;
 	char							szFinishTime[16] = { 0 };
 	uint32_t						buff_size = 0;
 
@@ -786,7 +786,7 @@ ngx_rtmp_notify_record_done_create(ngx_rtmp_session_t *s, void *arg,
     pl->buf = b;
     pl->next = NULL;
 
-	szBuf = (char*)b->last;
+//	szBuf = (char*)b->last;
 
     b->last = ngx_cpymem(b->last, (u_char*) "&call=record_done",
                          sizeof("&call=record_done") - 1);
