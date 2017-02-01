@@ -421,8 +421,6 @@ ngx_rtmp_recv(ngx_event_t *rev)
 
             }
 
-//			ngx_log_error(NGX_LOG_ERR, c->log, 0, "cscf->delta_pts_fix=%lu", cscf->delta_pts_fix);
-
 			if ((0!=cscf->delta_pts_fix) && (st->dtime > cscf->delta_pts_fix))//do workaround for invalid timestamp
 			{
 				ngx_log_error(NGX_LOG_ERR, c->log, 0, "----------->ACHTUNG!!! , st->dtime=%lu", st->dtime);

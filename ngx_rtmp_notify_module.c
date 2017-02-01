@@ -814,7 +814,8 @@ ngx_rtmp_notify_record_done_create(ngx_rtmp_session_t *s, void *arg,
         b->last = (u_char *) ngx_cpymem(b->last, ctx->args, args_len);
     }
 
-	ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "TIME_CHECKER NGX_RTMP_NOTIFY_RECORD_DONE_CREATE %s", szBuf);
+	if(args_len>16)
+		ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "args_len TOO LONG  = %d", args_len);
 
     return ngx_rtmp_notify_create_request(s, pool, NGX_RTMP_NOTIFY_RECORD_DONE, pl);
 }

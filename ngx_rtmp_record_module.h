@@ -50,11 +50,13 @@ typedef struct {
     time_t                              timestamp;
 	time_t                              start_time;			// recording start time
 	uint32_t							last_timestamp;		// last received timestamp
-	uint32_t							cur_file_timestamp;	// timestamp of first frame in the file
+	uint32_t							first_timestamp;	// timestamp of first frame in the file
 	time_t								file_close_time;	// time of last frame in the file
 	uint32_t							files_count;		// recoreded files counter
 	uint32_t							force_rec_restart_flag;	// restart recording to new file
 	uint32_t							video_frames_count; // recorded video frames (current file)
+	uint32_t							audio_frames_count; // recorded audio frames (current file)
+	uint32_t							bytes_written;
 	unsigned                            failed:1;
     unsigned                            initialized:1;
     unsigned                            aac_header_sent:1;
