@@ -351,7 +351,6 @@ ngx_rtmp_recv(ngx_event_t *rev)
             }
 
             ext = st->ext;
-
             timestamp = st->dtime;
             if (fmt <= 2 ) {
                 if (b->last - p < 3)
@@ -418,25 +417,25 @@ ngx_rtmp_recv(ngx_event_t *rev)
                     h->timestamp = timestamp;
                     st->dtime = 0;
                 }
-
             }
 
-			if ((0!=cscf->delta_pts_fix) && (st->dtime > cscf->delta_pts_fix))//do workaround for invalid timestamp
-			{
-				ngx_log_error(NGX_LOG_ERR, c->log, 0, "----------->ACHTUNG!!! , st->dtime=%lu", st->dtime);
-				st->dtime = 1;
-				ngx_log_error(NGX_LOG_ERR, c->log, 0,
-					"RTMP mheader fmt=%d (%d) time=%uD+%uD mlen=%D len=%D msid=%D delta_pts_fix=%d",
-					(int)fmt, (int)h->type, h->timestamp, st->dtime, h->mlen, st->len, h->msid, cscf->delta_pts_fix);
-			}
-			else
-			{
-				ngx_log_debug8(NGX_LOG_DEBUG_RTMP, c->log, 0,
-					"RTMP mheader fmt=%d %s (%d) "
-					"time=%uD+%uD mlen=%D len=%D msid=%D",
-					(int)fmt, ngx_rtmp_message_type(h->type), (int)h->type,
-					h->timestamp, st->dtime, h->mlen, st->len, h->msid);
-			}
+/*
+st->dtime (pts delta) from some "Truen" cameras periodically contains illegal value - near 0xFFFFFFFF or 0x7FFFFFFF.
+This code makes primitive fix of such deltas.
+*/
+            if ((0!=cscf->delta_pts_fix) && (st->dtime > cscf->delta_pts_fix))//do workaround for invalid timestamp
+            {
+                ngx_log_error(NGX_LOG_WARN, c->log, 0,"RTMP mheader fmt=%d (%d) time=%uD+%uD mlen=%D len=%D msid=%D delta_pts_fix=%d st->dtime=%lu",(int)fmt, (int)h->type, h->timestamp, st->dtime, h->mlen, st->len, h->msid, cscf->delta_pts_fix, st->dtime);
+                st->dtime = 1;
+            }
+            else
+            {
+                ngx_log_debug8(NGX_LOG_DEBUG_RTMP, c->log, 0,
+                    "RTMP mheader fmt=%d %s (%d) "
+                    "time=%uD+%uD mlen=%D len=%D msid=%D",
+                    (int)fmt, ngx_rtmp_message_type(h->type), (int)h->type,
+                    h->timestamp, st->dtime, h->mlen, st->len, h->msid);
+            }
 
             /* header done */
             b->pos = p;
@@ -764,15 +763,24 @@ ngx_rtmp_send_message(ngx_rtmp_session_t *s, ngx_chain_t *out,
 
 ngx_int_t
 ngx_rtmp_receive_message(ngx_rtmp_session_t *s,
-        ngx_rtmp_header_t *h, ngx_chain_t *in)
+	ngx_rtmp_header_t *h, ngx_chain_t *in)
 {
-    ngx_rtmp_core_main_conf_t  *cmcf;
-    ngx_array_t                *evhs;
-    size_t                      n;
-    ngx_rtmp_handler_pt        *evh;
+	ngx_rtmp_core_main_conf_t  *cmcf;
+	ngx_array_t                *evhs;
+	size_t                      n;
+	ngx_rtmp_handler_pt        *evh;
 
-    cmcf = ngx_rtmp_get_module_main_conf(s, ngx_rtmp_core_module);
-
+	cmcf = ngx_rtmp_get_module_main_conf(s, ngx_rtmp_core_module);
+/*
+if (h->type == NGX_RTMP_MSG_VIDEO)
+{
+	ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "V LIVE RECV timestamp=%uD", h->timestamp);
+}
+else
+{
+	ngx_log_error(NGX_LOG_ERR, s->connection->log, 0, "A LIVE RECV timestamp=%uD", h->timestamp);
+}
+*/
 #ifdef NGX_DEBUG
     {
         int             nbufs;
