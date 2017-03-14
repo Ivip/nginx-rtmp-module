@@ -1504,8 +1504,6 @@ ngx_rtmp_notify_close_stream(ngx_rtmp_session_t *s,
         ngx_del_timer(&ctx->update_evt);
     }
 
-    ctx->flags = 0;
-
 next:
     return next_close_stream(s, v);
 }
