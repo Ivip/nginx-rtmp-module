@@ -36,6 +36,8 @@ typedef struct {
 
     void                              **rec_conf;
     ngx_array_t                         rec; /* ngx_rtmp_record_app_conf_t * */
+    ngx_msec_t                          gap_timediff;
+    ngx_uint_t                          pts_based_file_slices;
 } ngx_rtmp_record_app_conf_t;
 
 
@@ -46,6 +48,15 @@ typedef struct {
     uint32_t                            epoch, time_shift;
     ngx_time_t                          last;
     time_t                              timestamp;
+    time_t                              start_time;         // recording start time
+    uint32_t                            last_timestamp;     // last received timestamp
+    uint32_t                            first_timestamp;    // timestamp of first frame in the file
+    time_t                              file_close_time;    // time of last frame in the file
+    uint32_t                            files_count;        // recoreded files counter
+    uint32_t                            force_rec_restart_flag;// restart recording to new file
+    uint32_t                            video_frames_count; // recorded video frames (current file)
+    uint32_t                            audio_frames_count; // recorded audio frames (current file)
+    uint32_t                            bytes_written;
     unsigned                            failed:1;
     unsigned                            initialized:1;
     unsigned                            aac_header_sent:1;
@@ -81,6 +92,7 @@ ngx_int_t ngx_rtmp_record_close(ngx_rtmp_session_t *s, ngx_uint_t n,
 typedef struct {
     ngx_str_t                           recorder;
     ngx_str_t                           path;
+    time_t                              last_frame_time;// time of last received video frame
 } ngx_rtmp_record_done_t;
 
 
